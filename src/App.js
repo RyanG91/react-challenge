@@ -25,6 +25,7 @@ class App extends Component {
     this.setState({
       list: list, newItem: ""
     })
+    console.log(list)
   }
 
   deleteItem = (id) => {
@@ -37,6 +38,18 @@ class App extends Component {
 
   completedTask = (id) => {
     const list = [...this.state.list]
+    const objId = list.findIndex((obj => obj.id === id))
+    const updatedObj = { ...list[objId], completed: true}
+
+    const updatedList = [
+      ...list.slice(0, objId),
+      updatedObj,
+      ...list.slice(objId + 1)
+    ]
+
+    this.setState({
+      list: updatedList
+    })
   }
 
   render () {
@@ -53,11 +66,8 @@ class App extends Component {
           {this.state.list.map(item => 
             <li key={item.id}>
               {item.value}
-              <input type="checkbox" onChange={this.completedTask}/>
-              <button>Edit</button>
-              <button onClick={() => this.deleteItem(item.id)}>
-                Delete
-              </button>
+              <input type="checkbox" onChange={() => this.completedTask(item.id)}/>
+              <button onClick={() => this.deleteItem(item.id)}>Delete</button>
             </li>
           )}
         </ul>
