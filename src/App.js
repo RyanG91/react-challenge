@@ -5,14 +5,10 @@ import api from './api/init'
 import Item from './components/Item'
 
 class App extends Component {
-  constructor(props, context) {
-    super(props, context)
-    this.state = {
-      list: [],
-      newItem: "",
-      editing: null
-    }
-    this.toggleEdit = this.toggleEdit.bind(this)
+  state = {
+    list: [],
+    newItem: "",
+    editing: null
   }
 
   updateNewItem = (event) => {
