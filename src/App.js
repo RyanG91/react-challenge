@@ -3,16 +3,16 @@ import './App.css';
 import EditItemForm from './components/EditItemForm'
 import api from './api/init'
 import Item from './components/Item'
+import store from './config/store'
+import {
+  setEditingAction
+} from './config/actions'
 
 class App extends Component {
-  state = {
-    list: [],
-    newItem: "",
-    editing: null
-  }
 
   updateNewItem = (event) => {
-    this.setState({
+    store.dispatch({
+      type: 'set_updateNewItem',
       newItem: event.target.value
     })
   }
@@ -20,10 +20,17 @@ class App extends Component {
   addItem = (event) => {
     event.preventDefault()
     api
-      .post('items/{listId}', {description: this.state.newItem, completed: false })
+      .post('items/{listId}', {
+        description: store.getState().newItem, 
+        // completed: false
+      })
       .then((response) => {
-        const lists = [...this.state.list, response.data]
-        this.setState({ lists, newItem: ''})
+        const list = [...store.getState().list, response.data]
+        store.dispatch({
+          type: 'set_list',
+          list, 
+          newItem: ''})
+        this.fetchItems()
       })
       .catch((err) => {
         console.log(err)
@@ -33,39 +40,38 @@ class App extends Component {
   deleteItem = (id) => {
     api
       .delete(`/items/{listId}/${id}`)
-    const index = this.state.list.findIndex(item => item.id === id)
+    const index = store.getState().list.findIndex(item => item.id === id)
     console.log(index)
     if (index >= 0) {
-      const list = [...this.state.list]
+      const list = [...store.getState().list]
       list.splice(index, 1)
-      this.setState({ list })
+      store.dispatch({ 
+        type: 'set_list',
+        list 
+      })
     }
   }
 
-	editItem = (event, id) => {
+	editItem = (event) => {
 		event.preventDefault()
 		const form = event.target
 		console.log(form)
 		api
-			.put(`/items/{listId}/${id}`, {
+			.put(`/items/{listId}/${form.elements.id.value}`, {
 				id: form.elements.id.value,
 				description: form.elements.description.value
 			})
 			.then(res => {
 				this.fetchItems()
-        this.setState({ editing: null})
+        store.dispatch(setEditingAction(null))
 			})
 			.catch(error => {
 				console.error("Error updating item: ", error)
 			})
   }
-  
-  toggleEdit = () => {
-    this.setState({ editing: !this.state.editing })
-  }
 
   completedTask = (id) => {
-    const list = [...this.state.list]
+    const list = [...store.getState().list]
     const objId = list.findIndex((obj => obj.id === id))
     const updatedObj = { ...list[objId], completed: true}
 
@@ -75,24 +81,19 @@ class App extends Component {
       ...list.slice(objId + 1)
     ]
 
-    this.setState({
+    store.dispatch({
       list: updatedList
     })
   }
 
   render () {
-    const list = this.state.list
+    const list = store.getState().list
     console.log(list)
-    if (this.state.editing) {
-      let item = this.state.editing
+    if (store.getState().editing) {
+      let item = store.getState().editing
       console.log(`in app item: ${item.id}`)
       return (
         <EditItemForm key={item.id} item={item} edit={this.editItem} />
-        // <div className="App">
-        //   <h1>Edit</h1>
-
-        //   <button onClick={this.toggleEdit}>Save</button>
-        // </div>
       )
     }
     return (
@@ -100,19 +101,13 @@ class App extends Component {
         <h1>To Do Lists</h1>
         <br />
         <form onSubmit={this.addItem}>
-          <label>Add job: </label><input onChange={this.updateNewItem} value={this.state.newItem}/>
+          <label>Add job: </label><input onChange={this.updateNewItem} value={store.getState().newItem}/>
           <input type="submit" value="Add job to list" />
         </form>
         <h3>Clean Room</h3>
         <ul>
-          {this.state.list.map(item => 
+          {store.getState().list.map(item => 
             <Item key={item.id} {...item} deleteItem={this.deleteItem} />
-            // <li key={item.id}>
-            //   {item.description}
-            //   <input type="checkbox" onChange={() => this.completedTask(item.id)}/>
-            //   <button onClick={() => this.deleteItem(item.id)}>Delete</button>
-            //   <button>Edit</button>
-            // </li>
           )}
         </ul>
       </div>
@@ -126,7 +121,10 @@ class App extends Component {
   async fetchItems() {
     try {
       const list = await api.get('items/{listId}')
-      this.setState({ list: list.data})
+      store.dispatch({
+        type: 'set_list',
+        list: list.data
+      })
     } catch(err) {
       alert("Can't get items")
     }

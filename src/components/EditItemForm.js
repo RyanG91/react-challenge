@@ -1,16 +1,14 @@
 import React from 'react'
 
-export default function EditItemForm({ item, editItem }) {
-  console.log(`item: ${item}, editItem: ${editItem}`)
+export default function EditItemForm({ item, edit }) {
+  console.log(`item: ${item}, editItem: ${edit}`)
   return (
-    <form onSubmit={editItem}>
+    <form onSubmit={edit}>
       <label>
         Description: <input type="text" name="description" defaultValue={item.description} />
       </label>
       <br />
-      <label>
-        id: <input type="hidden" name="id" value={item.id} />
-      </label>
+      <input type="hidden" name="id" value={item.id} />
       <button type="submit">Update</button>
     </form>
   )
