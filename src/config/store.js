@@ -3,7 +3,8 @@ import {createStore} from 'redux'
 const initialState = {
   list: [],
   newItem: "",
-  editing: null
+  editing: null,
+  order: 0
 }
 
 const reducer = (state, action) => {
@@ -14,6 +15,8 @@ const reducer = (state, action) => {
       return {...state, newItem: action.newItem}
     case "set_editing":
       return {...state, editing: action.editing}
+    case "set_addItem":
+      return {...state, list: action.list, order: action.order}
     
     default:
       console.log(`Redux reducer: Action ${action.type} does not exist`)

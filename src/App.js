@@ -10,6 +10,14 @@ import {
 
 class App extends Component {
 
+// Reverse the tasks within the list state
+  reverse = () => {
+    store.dispatch({
+      type: 'set_list',
+      list: store.getState().list.reverse()
+    })
+  }
+
   updateNewItem = (event) => {
     store.dispatch({
       type: 'set_updateNewItem',
@@ -19,18 +27,21 @@ class App extends Component {
 
   addItem = (event) => {
     event.preventDefault()
+    let orderNumber = store.getState().order + 1
     api
       .post('items/{listId}', {
         description: store.getState().newItem, 
-        order: 1,
+        order: orderNumber,
         completed: false
       })
       .then((response) => {
         const list = [...store.getState().list, response.data]
         store.dispatch({
-          type: 'set_list',
+          type: 'set_addItem',
           list, 
-          newItem: ''})
+          newItem: '',
+          order: orderNumber
+        })
         this.fetchItems()
       })
       .catch((err) => {
@@ -109,6 +120,7 @@ class App extends Component {
           <input type="submit" value="Add task to list" />
         </form>
         <h3>Clean Room</h3>
+        <button onClick={this.reverse}>Reverse</button>
         <ul>
           {store.getState().list.map(item => 
             <Item key={item.id} {...item} deleteItem={this.deleteItem} completedTask={this.completedTask} />
