@@ -22,7 +22,8 @@ class App extends Component {
     api
       .post('items/{listId}', {
         description: store.getState().newItem, 
-        // completed: false
+        order: 1,
+        completed: false
       })
       .then((response) => {
         const list = [...store.getState().list, response.data]
@@ -59,7 +60,9 @@ class App extends Component {
 		api
 			.put(`/items/{listId}/${form.elements.id.value}`, {
 				id: form.elements.id.value,
-				description: form.elements.description.value
+        description: form.elements.description.value,
+        completed: form.elements.completed.value,
+        order: form.elements.order.value
 			})
 			.then(res => {
 				this.fetchItems()
@@ -82,6 +85,7 @@ class App extends Component {
     ]
 
     store.dispatch({
+      type: 'set_list',
       list: updatedList
     })
   }
@@ -91,9 +95,9 @@ class App extends Component {
     console.log(list)
     if (store.getState().editing) {
       let item = store.getState().editing
-      console.log(`in app item: ${item.id}`)
+      console.log(`in app item: ${item.id} and ${item.completed}`)
       return (
-        <EditItemForm key={item.id} item={item} edit={this.editItem} />
+        <EditItemForm key={item.id} item={item} editItem={this.editItem} completedTask={this.completedTask} />
       )
     }
     return (
@@ -101,13 +105,13 @@ class App extends Component {
         <h1>To Do Lists</h1>
         <br />
         <form onSubmit={this.addItem}>
-          <label>Add job: </label><input onChange={this.updateNewItem} value={store.getState().newItem}/>
-          <input type="submit" value="Add job to list" />
+          <label>Add task: </label><input onChange={this.updateNewItem} value={store.getState().newItem}/>
+          <input type="submit" value="Add task to list" />
         </form>
         <h3>Clean Room</h3>
         <ul>
           {store.getState().list.map(item => 
-            <Item key={item.id} {...item} deleteItem={this.deleteItem} />
+            <Item key={item.id} {...item} deleteItem={this.deleteItem} completedTask={this.completedTask} />
           )}
         </ul>
       </div>
